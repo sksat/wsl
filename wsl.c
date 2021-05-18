@@ -1,11 +1,13 @@
 /*========================================
- *    sl.c: SL version 5.03
- *        Copyright 1993,1998,2014-2015
+ *    wsl.c: WSL version 1.0
+ *        Copyright 1993,1998,2014-2015,2021
  *                  Toyoda Masashi
  *                  (mtoyoda@acm.org)
- *        Last Modified: 2014/06/03
+ *        Last Modified: 2021/05/18
  *========================================
  */
+/* wsl version 1.0 : WSL: W(double) Steam Locomotive                         */
+/*                                              by sksat          2021/05/18 */
 /* sl version 5.03 : Fix some more compiler warnings.                        */
 /*                                              by Ryan Jacobs    2015/01/19 */
 /* sl version 5.02 : Fix compiler warnings.                                  */
@@ -43,11 +45,14 @@
 #include <unistd.h>
 #include "sl.h"
 
-void add_smoke(int y, int x);
+void add_smoke(int y, int x, int count);
 void add_man(int y, int x);
-int add_C51(int x);
-int add_D51(int x);
-int add_sl(int x);
+int add_C51(int y0, int x, int count);
+int add_D51(int y0, int x, int count);
+int add_sl(int y0, int x, int count);
+int add_wsl(int x);
+int add_wC51(int x);
+int add_wD51(int x);
 void option(char *str);
 int my_mvaddstr(int y, int x, char *str);
 
@@ -99,13 +104,13 @@ int main(int argc, char *argv[])
 
     for (x = COLS - 1; ; --x) {
         if (LOGO == 1) {
-            if (add_sl(x) == ERR) break;
+            if (add_wsl(x) == ERR) break;
         }
         else if (C51 == 1) {
-            if (add_C51(x) == ERR) break;
+            if (add_wC51(x) == ERR) break;
         }
         else {
-            if (add_D51(x) == ERR) break;
+            if (add_wD51(x) == ERR) break;
         }
         getch();
         refresh();
@@ -117,8 +122,34 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+int add_wsl(int x)
+{
+    static int count = 0;
+    if (x % 4 == 0) count ++;
 
-int add_sl(int x)
+    int y0 = LINES / 3;
+    return add_sl(y0, x, count) | add_sl(y0+y0, x, count);
+}
+
+int add_wC51(int x)
+{
+    static int count = 0;
+    if (x % 4 == 0) count ++;
+
+    int y0 = LINES / 3;
+    return add_C51(y0, x, count) | add_C51(y0+y0, x, count);
+}
+
+int add_wD51(int x)
+{
+    static int count = 0;
+    if (x % 4 == 0) count ++;
+
+    int y0 = LINES / 3;
+    return add_D51(y0, x, count) | add_D51(y0+y0, x, count);
+}
+
+int add_sl(int y0, int x, int count)
 {
     static char *sl[LOGOPATTERNS][LOGOHEIGHT + 1]
         = {{LOGO1, LOGO2, LOGO3, LOGO4, LWHL11, LWHL12, DELLN},
@@ -137,7 +168,7 @@ int add_sl(int x)
     int i, y, py1 = 0, py2 = 0, py3 = 0;
 
     if (x < - LOGOLENGTH)  return ERR;
-    y = LINES / 2 - 3;
+    y = y0;
 
     if (FLY == 1) {
         y = (x / 6) + LINES - (COLS / 6) - LOGOHEIGHT;
@@ -154,12 +185,12 @@ int add_sl(int x)
         add_man(y + 1 + py2, x + 45);  add_man(y + 1 + py2, x + 53);
         add_man(y + 1 + py3, x + 66);  add_man(y + 1 + py3, x + 74);
     }
-    add_smoke(y - 1, x + LOGOFUNNEL);
+    add_smoke(y - 1, x + LOGOFUNNEL, count);
     return OK;
 }
 
 
-int add_D51(int x)
+int add_D51(int y0, int x, int count)
 {
     static char *d51[D51PATTERNS][D51HEIGHT + 1]
         = {{D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
@@ -181,7 +212,7 @@ int add_D51(int x)
     int y, i, dy = 0;
 
     if (x < - D51LENGTH)  return ERR;
-    y = LINES / 2 - 5;
+	y = y0;
 
     if (FLY == 1) {
         y = (x / 7) + LINES - (COLS / 7) - D51HEIGHT;
@@ -195,11 +226,11 @@ int add_D51(int x)
         add_man(y + 2, x + 43);
         add_man(y + 2, x + 47);
     }
-    add_smoke(y - 1, x + D51FUNNEL);
+    add_smoke(y - 1, x + D51FUNNEL, count);
     return OK;
 }
 
-int add_C51(int x)
+int add_C51(int y0, int x, int count)
 {
     static char *c51[C51PATTERNS][C51HEIGHT + 1]
         = {{C51STR1, C51STR2, C51STR3, C51STR4, C51STR5, C51STR6, C51STR7,
@@ -221,7 +252,7 @@ int add_C51(int x)
     int y, i, dy = 0;
 
     if (x < - C51LENGTH)  return ERR;
-    y = LINES / 2 - 5;
+	y = y0;
 
     if (FLY == 1) {
         y = (x / 7) + LINES - (COLS / 7) - C51HEIGHT;
@@ -235,7 +266,8 @@ int add_C51(int x)
         add_man(y + 3, x + 45);
         add_man(y + 3, x + 49);
     }
-    add_smoke(y - 1, x + C51FUNNEL);
+    //add_smoke(y - 1, x + C51FUNNEL, 0);
+    add_smoke(y - 1, x + LOGOFUNNEL, count);
     return OK;
 }
 
@@ -251,14 +283,14 @@ void add_man(int y, int x)
 }
 
 
-void add_smoke(int y, int x)
+void add_smoke(int y, int x, int sum)
 #define SMOKEPTNS        16
 {
+    static int call = 0;
     static struct smokes {
         int y, x;
         int ptrn, kind;
-    } S[1000];
-    static int sum = 0;
+    } S[2][1000];
     static char *Smoke[2][SMOKEPTNS]
         = {{"(   )", "(    )", "(    )", "(   )", "(  )",
             "(  )" , "( )"   , "( )"   , "()"   , "()"  ,
@@ -280,16 +312,17 @@ void add_smoke(int y, int x)
     int i;
 
     if (x % 4 == 0) {
+        int n = call % 2;
         for (i = 0; i < sum; ++i) {
-            my_mvaddstr(S[i].y, S[i].x, Eraser[S[i].ptrn]);
-            S[i].y    -= dy[S[i].ptrn];
-            S[i].x    += dx[S[i].ptrn];
-            S[i].ptrn += (S[i].ptrn < SMOKEPTNS - 1) ? 1 : 0;
-            my_mvaddstr(S[i].y, S[i].x, Smoke[S[i].kind][S[i].ptrn]);
+            my_mvaddstr(S[n][i].y, S[n][i].x, Eraser[S[n][i].ptrn]);
+            S[n][i].y    -= dy[S[n][i].ptrn];
+            S[n][i].x    += dx[S[n][i].ptrn];
+            S[n][i].ptrn += (S[n][i].ptrn < SMOKEPTNS - 1) ? 1 : 0;
+            my_mvaddstr(S[n][i].y, S[n][i].x, Smoke[S[n][i].kind][S[n][i].ptrn]);
         }
         my_mvaddstr(y, x, Smoke[sum % 2][0]);
-        S[sum].y = y;    S[sum].x = x;
-        S[sum].ptrn = 0; S[sum].kind = sum % 2;
-        sum ++;
+        S[n][sum].y = y;    S[n][sum].x = x;
+        S[n][sum].ptrn = 0; S[n][sum].kind = sum % 2;
     }
+    call ++;
 }
