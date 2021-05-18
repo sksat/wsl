@@ -1,20 +1,20 @@
 #==========================================
-#    Makefile: makefile for sl 5.1
+#    Makefile: makefile for wsl 1.0
 #	Copyright 1993, 1998, 2014
 #                 Toyoda Masashi
 #		  (mtoyoda@acm.org)
-#	Last Modified: 2014/03/31
+#	Last Modified: 2021/05/18
 #==========================================
 
 CC=gcc
 CFLAGS=-O -Wall
 
-all: sl
+all: wsl
 
-sl: sl.c sl.h
-	$(CC) $(CFLAGS) -o sl sl.c -lncurses
+wsl: wsl.c sl.h
+	$(CC) $(CFLAGS) -o wsl wsl.c -lncurses
 
 clean:
-	rm -f sl
+	rm -f wsl
 
 distclean: clean
